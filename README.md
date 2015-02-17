@@ -49,9 +49,11 @@ This will run HAProxy service at port 80 and port 1936 for statistics.
 The HAProxy service must be the last one to be deployed. If we deploy haproxy.service before confd.service, it will
  wait until confd.service the the command prompt will not return immediately.
 
+```
 $ fleetctl list-units
 UNIT                            MACHINE                         ACTIVE          SUB
 confd.service                   f564b0fc.../172.17.8.101        activating      start-pre
+```
 
 If the confd.service is activating and start-pre it means that docker pull from the `ExecStartPre` is still running,
  you have to wait until it's running then start the haproxy.service.
