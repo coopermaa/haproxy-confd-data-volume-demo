@@ -1,0 +1,20 @@
+[template]
+
+# The name of the template that will be used to render the application's configuration file
+# Confd will look in `/etc/confd/templates` for these files by default
+src = "haproxy.tmpl"
+
+# The location to place the rendered configuration file
+dest = "/usr/local/etc/haproxy/haproxy.cfg"
+
+# The etcd keys or directory to watch.  This is where the information to fill in
+# the template will come from.
+keys = [
+  "/services/web-backend",
+]
+
+# We are not able to check whether the rendered config is valid since
+# we don't have haproxy installed. So just skip it.
+## check_cmd = "/usr/sbin/haproxy -c -f {{ .src }}"
+# Send a signal to haproxy container to reload the new config
+reload_cmd = "/usr/bin/docker kill -s HUP haproxy.service"

@@ -1,0 +1,21 @@
+[Unit]
+Description=HAProxy load balancer for web server backends
+# Our confd container must be ready, which will re-generate configs at runtime
+# and share a data volume for us (/usr/local/etc/haproxy)
+After=confd.service
+Requires=confd.service
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill %n
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStartPre=/usr/bin/docker pull haproxy:1.5.10
+# port 80 for http communications, port 1936 for statistics
+ExecStart=/usr/bin/docker run --name %n -p ${COREOS_PUBLIC_IPV4}:80:80 \
+  -p ${COREOS_PRIVATE_IPV4}:1936:1936 --volumes-from confd.service haproxy:1.5.10
+ExecStop=/usr/bin/docker stop %n
+
+[X-Fleet]
+# We need to be on the same machine as confd.service
+MachineOf=confd.service

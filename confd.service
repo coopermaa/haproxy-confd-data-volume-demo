@@ -1,0 +1,20 @@
+[Unit]
+Description=Runtime Reconfiguration Service
+Requires=docker.service  
+After=docker.service
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill %n
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStartPre=/usr/bin/docker pull coopermaa/confd
+# We need to provide our confd container with the IP it can reach etcd
+# on and the docker socket so it send HUP signals to haproxy.
+# We have to run the command using shell, or the command substitution for $(which docker)
+# will have no effect.
+ExecStart=/bin/sh -c '\
+  /usr/bin/docker run --name %n -e "ETCD=http://${COREOS_PRIVATE_IPV4}:4001" \
+  -v /var/run/docker.sock:/var/run/docker.sock -v $(which docker):$(which docker) \
+  -v /usr/local/etc/haproxy  coopermaa/confd'
+
+ExecStop=/usr/bin/docker stop %n

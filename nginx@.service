@@ -1,0 +1,16 @@
+[Unit]
+Description=A Nginx HTTP Server and reverse proxy
+Requires=docker.service  
+After=docker.service
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill nginx-%i
+ExecStartPre=-/usr/bin/docker rm nginx-%i
+ExecStartPre=/usr/bin/docker pull nginx:latest
+ExecStart=/usr/bin/docker run --name nginx-%i -p 8080:80 nginx:latest
+ExecStop=/usr/bin/docker stop nginx-%i
+
+[X-Fleet]
+# Don't schedule on the same machine as other Nginx instances
+Conflicts=nginx@*.service
